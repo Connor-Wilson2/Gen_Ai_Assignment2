@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini 3 AI Agent Workbench</title>
+    <style>
+        :root {
+            --bg: #f4f7f9;
+            --card: #ffffff;
+            --primary: #4285f4; /* Google Blue */
+            --secondary: #5f6368;
+            --accent: #34a853; /* Google Green */
+            --warning: #fbbc05; /* Google Yellow */
+            --danger: #ea4335; /* Google Red */
+            --border: #dadce0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: #3c4043;
+            display: flex;
+            justify-content: center;
+            padding: 30px 15px;
+            margin: 0;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: var(--card);
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        }
+
+        h1 { font-size: 26px; color: var(--primary); text-align: center; margin-bottom: 5px; }
+        .version-tag { text-align: center; font-size: 12px; color: var(--secondary); margin-bottom: 30px; font-weight: bold; }
+        
+        .section { margin-bottom: 20px; }
+        
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: var(--secondary);
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 15px;
+            box-sizing: border-box;
+            background: #fff;
+        }
+
+        .config-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .slider-box {
+            background: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+
+        button {
+            width: 100%;
+            padding: 16px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(66, 133, 244, 0.2);
+        }
+
+        button:hover { background-color: #3367d6; transform: translateY(-1px); }
+        button:active { transform: translateY(0); }
+        button:disabled { background-color: #bdc1c6; cursor: wait; box-shadow: none; }
+
+        .output-container { margin-top: 30px; }
+        .box-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        
+        .output-box {
+            width: 100%;
+            min-height: 100px;
+            padding: 18px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-size: 14px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            overflow-y: auto;
+        }
+
+        .prompt-preview {
+            background-color: #fff9e6; /* Yellow tint */
+            border-left: 5px solid var(--warning);
+            font-family: 'Consolas', 'Monaco', monospace;
+            color: #444;
+        }
+
+        .response-area {
+            background-color: #f1f8ff; /* Blue tint */
+            border-left: 5px solid var(--primary);
+            min-height: 200px;
+        }
+
+        .api-key-section {
+            background: #e8f0fe;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border: 1px dashed var(--primary);
+        }
+
+        .badge {
+            background: var(--primary);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Gemini 3 AI Agent Workbench</h1>
+    <div class="version-tag">2026 EDITION • MODEL: gemini-3-flash-preview</div>
+
+    <div class="api-key-section">
+        <label for="apiKey">Step 1: Google AI Studio API Key</label>
+        <input type="password" id="apiKey" placeholder="Enter your key (AIza...)">
+        <p style="font-size: 11px; margin: 8px 0 0;">Keys are available at <a href="https://aistudio.google.com/" target="_blank">Google AI Studio</a>. This page runs locally in your browser.</p>
+    </div>
+
+    <div class="section">
+        <label for="roleSelect">Step 2: Select Specialized Agent Role</label>
+        <select id="roleSelect">
+            <option value="Research Scientist" data-sys="You are a senior Research Scientist. Apply rigorous analytical thinking, identify variables, and structure your response with scientific precision. Prioritize evidence-based facts.">Research Scientist (Analytical)</option>
+            <option value="Advanced Systems Architect" data-sys="You are a Principal Software Architect. Evaluate requests through the lens of scalability, security, and the DRY principle. Provide high-level abstractions followed by robust implementation logic.">Advanced Systems Architect (Coding)</option>
+            <option value="AI Ethics Advisor" data-sys="You are an AI Ethics & Policy Advisor. Analyze the user's request for potential bias, safety risks, and societal impact. Provide a balanced, nuanced perspective on the ethical dimensions.">AI Ethics Advisor (Critical Thinking)</option>
+            <option value="Creative Narrative Designer" data-sys="You are a Narrative Lead for a top-tier game studio. Use vivid imagery, emotional resonance, and world-building depth. Avoid cliches and focus on unique, atmospheric storytelling.">Creative Narrative Designer (Creative)</option>
+            <option value="Product Strategy Lead" data-sys="You are a Product Strategy Lead at a Fortune 500 tech company. Focus on market fit, user friction, and ROI. Structure your answers with clear 'The Why', 'The How', and 'The Impact'.">Product Strategy Lead (Business)</option>
+        </select>
+    </div>
+
+    <div class="config-grid">
+        <div class="section">
+            <label for="tempSlider">Temperature: <span id="tempVal" style="color:var(--primary)">0.7</span></label>
+            <div class="slider-box">
+                <input type="range" id="tempSlider" min="0" max="2" step="0.1" value="0.7">
+            </div>
+        </div>
+        <div class="section">
+            <label for="thinkLevel">Thinking Level <span class="badge">NEW</span></label>
+            <select id="thinkLevel">
+                <option value="minimal">Minimal (Fastest)</option>
+                <option value="low">Low (Balanced)</option>
+                <option value="high" selected>High (Deep Reasoning)</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="section">
+        <label for="userPrompt">Step 3: User Request</label>
+        <textarea id="userPrompt" rows="4" placeholder="How can Gemini 3 help you today?"></textarea>
+    </div>
+
+    <button id="sendBtn">Execute Agent Sequence</button>
+
+    <div class="output-container">
+        <div class="box-header">
+            <label>Agent Instruction Payload (Final Prompt):</label>
+        </div>
+        <div id="finalPromptBox" class="output-box prompt-preview">Your combined instructions will be shown here...</div>
+
+        <div class="box-header" style="margin-top:20px;">
+            <label>Gemini 3 Agent Output:</label>
+        </div>
+        <div id="responseBox" class="output-box response-area">Awaiting execution...</div>
+    </div>
+</div>
+
+<script>
+    const tempSlider = document.getElementById('tempSlider');
+    const tempVal = document.getElementById('tempVal');
+    const sendBtn = document.getElementById('sendBtn');
+    const apiKeyInput = document.getElementById('apiKey');
+    const roleSelect = document.getElementById('roleSelect');
+    const userPromptInput = document.getElementById('userPrompt');
+    const thinkLevelSelect = document.getElementById('thinkLevel');
+    const finalPromptDisplay = document.getElementById('finalPromptBox');
+    const responseDisplay = document.getElementById('responseBox');
+
+    tempSlider.oninput = () => tempVal.innerText = tempSlider.value;
+
+    sendBtn.onclick = async () => {
+        const key = apiKeyInput.value.trim();
+        const userText = userPromptInput.value.trim();
+        const roleName = roleSelect.value;
+        const systemInstruction = roleSelect.options[roleSelect.selectedIndex].dataset.sys;
+        const temperature = parseFloat(tempSlider.value);
+        const thinkingLevel = thinkLevelSelect.value;
+
+        if (!key) return alert("Error: API Key is required.");
+        if (!userText) return alert("Error: Please enter a prompt.");
+
+        // Construct combined prompt logic
+        const combinedPrompt = `[SYSTEM INSTRUCTION]: ${systemInstruction}
+[AGENT ROLE]: ${roleName}
+[USER REQUEST]: ${userText}`;
+        
+        finalPromptDisplay.innerText = combinedPrompt;
+        responseDisplay.innerText = "Initializing Gemini 3 Engine... (Deep Thinking enabled)";
+        sendBtn.disabled = true;
+
+        try {
+            // Updated for Gemini 3 Flash Preview (Early 2026 Endpoint)
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${key}`;
+
+            const payload = {
+                contents: [{ parts: [{ text: combinedPrompt }] }],
+                generationConfig: {
+                    temperature: temperature,
+                    maxOutputTokens: 4096,
+                    // Note: Thinking level is a new 2026 parameter for Gemini 3
+                    thinking_config: {
+                        include_thoughts: true,
+                        thinking_level: thinkingLevel
+                    }
+                }
+            };
+
+            const response = await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+
+            if (data.error) {
+                responseDisplay.innerText = "❌ API Error: " + data.error.message;
+            } else if (data.candidates && data.candidates[0].content) {
+                const parts = data.candidates[0].content.parts;
+                // Gemini 3 can return separate "thought" and "text" parts
+                let fullText = "";
+                parts.forEach(p => {
+                    if (p.thought) fullText += "--- THOUGHT PROCESS ---\n" + p.thought + "\n\n--- RESPONSE ---\n";
+                    if (p.text) fullText += p.text;
+                });
+                responseDisplay.innerText = fullText || "No response received.";
+            } else {
+                responseDisplay.innerText = "Unexpected API response format. Check console.";
+                console.log(data);
+            }
+        } catch (err) {
+            responseDisplay.innerText = "❌ Connection Error: " + err.message;
+        } finally {
+            sendBtn.disabled = false;
+        }
+    };
+</script>
+
+</body>
+</html>
