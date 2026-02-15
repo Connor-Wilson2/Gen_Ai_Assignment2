@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini AI Agent Workbench</title>
+    <style>
+        :root { --bg: #f0f2f5; --card: #ffffff; --primary: #007bff; --accent: #ffd700; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; }
+        .container { width: 100%; max-width: 700px; background: var(--card); padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; box-sizing: border-box; }
+        .slider-wrap { display: flex; align-items: center; gap: 10px; }
+        button { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #ccc; }
+        .output-box { margin-top: 20px; padding: 15px; border-radius: 8px; background: #f8f9fa; border: 1px solid #dee2e6; height: 150px; overflow-y: auto; white-space: pre-wrap; }
+        .prompt-preview { background: #fff9db; border-color: #ffec99; font-family: monospace; font-size: 12px; }
+        .api-key-box { border: 2px solid var(--primary); margin-bottom: 25px; padding: 15px; border-radius: 8px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Gemini AI Agent Workbench</h2>
+
+    <div class="api-key-box">
+        <label for="apiKey">Step 1: Enter Google AI API Key</label>
+        <input type="password" id="apiKey" placeholder="paste your key here (starts with AIza...)">
+        <small>Get one at <a href="https://aistudio.google.com/" target="_blank">Google AI Studio</a></small>
+    </div>
+
+    <div class="form-group">
+        <label>Step 2: Select AI Role</label>
+        <select id="roleSelect">
+            <option value="Executive Assistant" data-sys="You are a professional executive assistant. Be concise, organized, and use formal business language.">Executive Assistant</option>
+            <option value="Sassy Tutor" data-sys="You are a helpful tutor but you have a sassy, sarcastic attitude. Use emojis and Gen-Z slang.">Sassy Tutor</option>
+            <option value="Code Reviewer" data-sys="You are a senior software engineer. Analyze code for bugs, security flaws, and readability.">Code Reviewer</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>Step 3: Temperature (<span id="tempLabel">0.7</span>)</label>
+        <div class="slider-wrap">
+            <input type="range" id="tempSlider" min="0" max="2" step="0.1" value="0.7">
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>Step 4: Your Prompt</label>
+        <textarea id="userPrompt" rows="3" placeholder="What do you want to ask?"></textarea>
+    </div>
+
+    <button id="sendBtn">Send to Gemini</button>
+
+    <hr>
+
+    <label>Final Prompt (System + Role + User):</label>
+    <div id="finalPromptBox" class="output-box prompt-preview">---</div>
+
+    <label>Gemini Response:</label>
+    <div id="responseBox" class="output-box">Waiting for input...</div>
+</div>
+
+<script>
+    const apiKeyInput = document.getElementById('apiKey');
+    const tempSlider = document.getElementById('tempSlider');
+    const tempLabel = document.getElementById('tempLabel');
+    const sendBtn = document.getElementById('sendBtn');
+
+    tempSlider.oninput = () => tempLabel.innerText = tempSlider.value;
+
+    sendBtn.onclick = async () => {
+        const key = apiKeyInput.value.trim();
+        const userText = document.getElementById('userPrompt').value;
+        const role = document.getElementById('roleSelect').value;
+        const systemText = document.getElementById('roleSelect').options[document.getElementById('roleSelect').selectedIndex].dataset.sys;
+        const temp = parseFloat(tempSlider.value);
+
+        if (!key) return alert("Please enter an API Key!");
+        if (!userText) return alert("Please enter a prompt!");
+
+        // Construct the combined prompt as requested
+        const combinedPrompt = `[SYSTEM INSTRUCTION]: ${systemText}\n[SELECTED ROLE]: ${role}\n[USER REQUEST]: ${userText}`;
+        
+        // Show the user the prompt being sent
+        document.getElementById('finalPromptBox').innerText = combinedPrompt;
+        document.getElementById('responseBox').innerText = "Generating response...";
+        sendBtn.disabled = true;
+
+        try {
+            // Google Gemini API URL (using Gemini 1.5 Flash for speed)
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`;
+
+            const response = await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: combinedPrompt }] }],
+                    generationConfig: {
+                        temperature: temp,
+                        maxOutputTokens: 800,
+                    }
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.error) {
+                document.getElementById('responseBox').innerText = "API Error: " + data.error.message;
+            } else {
+                // Extracting text from Gemini's nested response format
+                const aiText = data.candidates[0].content.parts[0].text;
+                document.getElementById('responseBox').innerText = aiText;
+            }
+        } catch (err) {
+            document.getElementById('responseBox').innerText = "Connection Error: " + err.message;
+        } finally {
+            sendBtn.disabled = false;
+        }
+    };
+</script>
+
+</body>
+</html>
